@@ -17,6 +17,7 @@ import logbook.dto.DockDto;
 import logbook.dto.NdockDto;
 import logbook.dto.ShipDto;
 import logbook.gui.ApplicationMain;
+import logbook.gui.logic.PushNotify;
 import logbook.gui.logic.Sound;
 import logbook.gui.logic.TimeLogic;
 import logbook.gui.widgets.FleetComposite;
@@ -226,6 +227,13 @@ public final class AsyncExecApplicationMain extends Thread {
                     }
                 } catch (Exception e) {
                     LOG.warn("お知らせの表示に失敗しました", e);
+                }
+            }
+            if (AppConfig.get().getNotifyProwl() || AppConfig.get().getNotifyNMA()
+                    || AppConfig.get().getNotifyImKayac()) {
+                // Push 通知
+                if (notice.size() > 0) {
+                    PushNotify.add(StringUtils.join(notice, "\r\n"));
                 }
             }
         }

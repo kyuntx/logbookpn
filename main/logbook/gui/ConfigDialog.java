@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import logbook.config.AppConfig;
 import logbook.data.context.GlobalContext;
 import logbook.gui.logic.LayoutLogic;
+import logbook.gui.logic.PushNotify;
 import logbook.internal.EvaluateExp;
 import logbook.internal.SeaExp;
 
@@ -101,12 +102,19 @@ public final class ConfigDialog extends Dialog {
         TreeItem capture = new TreeItem(systemroot, SWT.NONE);
         capture.setText("キャプチャ");
         capture.setData("capture");
+
         TreeItem chart = new TreeItem(systemroot, SWT.NONE);
         chart.setText("資材チャート");
         chart.setData("chart");
+
         TreeItem proxy = new TreeItem(systemroot, SWT.NONE);
         proxy.setText("プロキシ");
         proxy.setData("proxy");
+
+        TreeItem pushnotify = new TreeItem(tree, SWT.NONE);
+        pushnotify.setText("Push通知");
+        pushnotify.setData("pushnotify");
+
         TreeItem development = new TreeItem(tree, SWT.NONE);
         development.setText("Development");
         development.setData("development");
@@ -549,6 +557,98 @@ public final class ConfigDialog extends Dialog {
         gdProxyPortSpinner.widthHint = 55;
         proxyPortSpinner.setLayoutData(gdProxyPortSpinner);
 
+        // Push通知タブ
+        Composite compositePushNotify = new Composite(this.composite, SWT.NONE);
+        this.compositeMap.put("pushnotify", compositePushNotify);
+        compositePushNotify.setLayout(new GridLayout(3, false));
+
+        final Button prowl = new Button(compositePushNotify, SWT.CHECK);
+        prowl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
+        prowl.setText("ProwlによるPush通知");
+        prowl.setSelection(AppConfig.get().getNotifyProwl());
+
+        Label label11 = new Label(compositePushNotify, SWT.NONE);
+        label11.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        label11.setText("Prowl APIKey");
+
+        final Text prowlAPIKey = new Text(compositePushNotify, SWT.BORDER);
+        GridData gdprowlAPIKey = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gdprowlAPIKey.widthHint = 220;
+        prowlAPIKey.setLayoutData(gdprowlAPIKey);
+        prowlAPIKey.setText(AppConfig.get().getProwlAPIKey());
+
+        final Button nma = new Button(compositePushNotify, SWT.CHECK);
+        nma.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
+        nma.setText("Notify My Android (NMA)によるPush通知");
+        nma.setSelection(AppConfig.get().getNotifyNMA());
+
+        Label label12 = new Label(compositePushNotify, SWT.NONE);
+        label12.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        label12.setText("NMA APIKey");
+
+        final Text nmaAPIKey = new Text(compositePushNotify, SWT.BORDER);
+        GridData gdnmaAPIKey = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gdnmaAPIKey.widthHint = 220;
+        nmaAPIKey.setLayoutData(gdnmaAPIKey);
+        nmaAPIKey.setText(AppConfig.get().getNMAAPIKey());
+
+        final Button imkayac = new Button(compositePushNotify, SWT.CHECK);
+        imkayac.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
+        imkayac.setText("ImKayac によるPush通知");
+        imkayac.setSelection(AppConfig.get().getNotifyImKayac());
+
+        Label label14 = new Label(compositePushNotify, SWT.NONE);
+        label14.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        label14.setText("ImKayac UserName");
+
+        final Text imkayacUserName = new Text(compositePushNotify, SWT.BORDER);
+        GridData gdimkayacUserName = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gdimkayacUserName.widthHint = 220;
+        imkayacUserName.setLayoutData(gdimkayacUserName);
+        imkayacUserName.setText(AppConfig.get().getImKayacUserName());
+
+        Label label15 = new Label(compositePushNotify, SWT.NONE);
+        label15.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        label15.setText("ImKayac パスワード");
+
+        final Text imkayacPasswd = new Text(compositePushNotify, SWT.PASSWORD | SWT.BORDER);
+        GridData gdimkayacPasswd = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gdimkayacPasswd.widthHint = 220;
+        imkayacPasswd.setLayoutData(gdimkayacPasswd);
+        imkayacPasswd.setText(AppConfig.get().getImKayacPasswd());
+
+        Label label16 = new Label(compositePushNotify, SWT.NONE);
+        label16.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        label16.setText("ImKayac 秘密鍵");
+
+        final Text imkayacPrivateKey = new Text(compositePushNotify, SWT.BORDER);
+        GridData gdimkayacPrivateKey = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gdimkayacPrivateKey.widthHint = 220;
+        imkayacPrivateKey.setLayoutData(gdimkayacUserName);
+        imkayacPrivateKey.setText(AppConfig.get().getImKayacPrivateKey());
+
+        Label label17 = new Label(compositePushNotify, SWT.NONE);
+        label17.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 3, 1));
+        label17.setText("パスワードと秘密鍵の両方が設定されていると\n秘密鍵が優先されます。");
+
+        Button TestNotifyBtn = new Button(compositePushNotify, SWT.NONE);
+        TestNotifyBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 3, 1));
+        TestNotifyBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                AppConfig.get().setNotifyProwl(prowl.getSelection());
+                AppConfig.get().setProwlAPIKey(prowlAPIKey.getText());
+                AppConfig.get().setNotifyNMA(nma.getSelection());
+                AppConfig.get().setNMAAPIKey(nmaAPIKey.getText());
+                AppConfig.get().setNotifyImKayac(imkayac.getSelection());
+                AppConfig.get().setImKayacUserName(imkayacUserName.getText());
+                AppConfig.get().setImKayacPasswd(imkayacPasswd.getText());
+                AppConfig.get().setImKayacPrivateKey(imkayacPrivateKey.getText());
+                PushNotify.add("第二艦隊（通知テスト）がまもなく帰投します");
+            }
+        });
+        TestNotifyBtn.setText("テスト通知");
+
         // Development タブ
         Composite compositeDevelopment = new Composite(this.composite, SWT.NONE);
         this.compositeMap.put("development", compositeDevelopment);
@@ -648,15 +748,29 @@ public final class ConfigDialog extends Dialog {
                 AppConfig.get().setCapturePath(captureDir.getText());
                 AppConfig.get().setImageFormat(imageformatCombo.getItem(imageformatCombo.getSelectionIndex()));
                 AppConfig.get().setCreateDateFolder(createDateFolder.getSelection());
+
                 // チャート
                 AppConfig.get().setFuelColor(fuel.getForeground().getRGB());
                 AppConfig.get().setAmmoColor(ammo.getForeground().getRGB());
                 AppConfig.get().setMetalColor(metal.getForeground().getRGB());
                 AppConfig.get().setBauxiteColor(bauxite.getForeground().getRGB());
+
                 // proxy
                 AppConfig.get().setUseProxy(useProxyButton.getSelection());
                 AppConfig.get().setProxyHost(proxyHostText.getText());
                 AppConfig.get().setProxyPort(proxyPortSpinner.getSelection());
+
+                // push notify
+                AppConfig.get().setNotifyProwl(prowl.getSelection());
+                AppConfig.get().setProwlAPIKey(prowlAPIKey.getText());
+                AppConfig.get().setNotifyNMA(nma.getSelection());
+                AppConfig.get().setNMAAPIKey(nmaAPIKey.getText());
+                AppConfig.get().setNotifyImKayac(imkayac.getSelection());
+                AppConfig.get().setImKayacUserName(imkayacUserName.getText());
+                AppConfig.get().setImKayacPasswd(imkayacPasswd.getText());
+                AppConfig.get().setImKayacPrivateKey(imkayacPrivateKey.getText());
+
+                AppConfig.get().setCreateDateFolder(createDateFolder.getSelection());
 
                 // development
                 AppConfig.get().setStoreJson(btnJson.getSelection());

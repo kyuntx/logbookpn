@@ -16,10 +16,10 @@ public class AppConstants {
     public static final String VERSION = "0.6.15";
 
     /** ホームページ */
-    public static final URI HOME_PAGE_URI = URI.create("http://kancolle.sanaechan.net/");
+    public static final URI HOME_PAGE_URI = URI.create("http://kancolle.clovertown.jp/");
 
     /** アップデートチェック先 */
-    public static final URI UPDATE_CHECK_URI = URI.create("http://kancolle.sanaechan.net/checkversion.txt");
+    public static final URI UPDATE_CHECK_URI = URI.create("http://kancolle.clovertown.jp/checkversion.txt");
 
     /** 日付書式 */
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -342,4 +342,22 @@ public class AppConstants {
 
     /** メッセージ  艦隊合計Lv:{0} */
     public static final String MESSAGE_TOTAL_LV = "艦隊合計Lv:{0}。";
+
+    /** Push 通知のアプリケーション名*/
+    public static final String PUSH_NOTIFY_APPNAME = "航海日誌";
+
+    /** Push 通知のイベント名 */
+    public static final String PUSH_NOTIFY_EVENT = "遠征・入渠";
+
+    /** Push通知の priority (-2: verylow, -1: moderate, 0: normal, 1: high, 2: emergency */
+    public static final String PUSH_NOTIFY_PRIORITY = "0";
+
+    /** Prowl のアクセス先 URI */
+    public static final String PUSH_NOTIFY_PROWL_URI = "https://api.prowlapp.com/publicapi/add";
+
+    /** NMA のアクセス先 URI */
+    public static final String PUSH_NOTIFY_NMA_URI = "https://nma.usk.bz/publicapi/notify";
+
+    /** im.kayac.com のアクセス先 URI */
+    public static final String PUSH_NOTIFY_IMKAYAC_URI = "http://im.kayac.com/api/post/";
 }

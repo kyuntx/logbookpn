@@ -23,6 +23,7 @@ import logbook.gui.listener.MissionResultReportAdapter;
 import logbook.gui.listener.ShipListReportAdapter;
 import logbook.gui.listener.TraySelectionListener;
 import logbook.gui.logic.LayoutLogic;
+import logbook.gui.logic.PushNotify;
 import logbook.gui.logic.Sound;
 import logbook.gui.widgets.FleetComposite;
 import logbook.server.proxy.ProxyServer;
@@ -207,7 +208,7 @@ public final class ApplicationMain {
             shellStyle |= SWT.ON_TOP;
         }
         this.shell = new Shell(shellStyle);
-        this.shell.setText("航海日誌 " + AppConstants.VERSION);
+        this.shell.setText("航海日誌  pn " + AppConstants.VERSION);
         this.shell.setAlpha(AppConfig.get().getAlpha());
         GridLayout glShell = new GridLayout(1, false);
         glShell.horizontalSpacing = 1;
@@ -671,6 +672,8 @@ public final class ApplicationMain {
         ThreadManager.regist(new AsyncExecApplicationMainConsole(this.console));
         // サウンドを出すスレッド
         ThreadManager.regist(new Sound.PlayerThread());
+        // Push通知を行うスレッド
+        ThreadManager.regist(new PushNotify.PushNotifyThread());
         // スレッドを監視するスレッド
         ThreadManager.regist(new ThreadStateObserver(this.shell));
 
