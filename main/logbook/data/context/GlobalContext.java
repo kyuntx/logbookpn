@@ -122,6 +122,9 @@ public final class GlobalContext {
     /** 今いるマップ上のマスNo */
     private static int mapCellNo;
 
+    /** 今いるマップ上のボスNo */
+    private static int mapBossCellNo;
+
     /** ログキュー */
     private static Queue<String> consoleQueue = new ArrayBlockingQueue<String>(10);
 
@@ -421,6 +424,10 @@ public final class GlobalContext {
             case COMBINED_BATTLE:
                 doBattle(data);
                 break;
+            // 海戦
+            case COMBINED_BATTLE_WATER:
+                doBattle(data);
+                break;
             // 海戦結果
             case BATTLE_RESULT:
                 doBattleresult(data);
@@ -687,7 +694,7 @@ public final class GlobalContext {
         try {
             if (battle != null) {
                 JsonObject apidata = data.getJsonObject().getJsonObject("api_data");
-                BattleResultDto dto = new BattleResultDto(apidata, mapCellNo, battle);
+                BattleResultDto dto = new BattleResultDto(apidata, mapCellNo, mapBossCellNo, battle);
                 battleResultList.add(dto);
                 CreateReportLogic.storeBattleResultReport(dto);
 
@@ -1322,6 +1329,7 @@ public final class GlobalContext {
             JsonObject obj = data.getJsonObject().getJsonObject("api_data");
 
             mapCellNo = obj.getJsonNumber("api_no").intValue();
+            mapBossCellNo = obj.getJsonNumber("api_bosscell_no").intValue();
 
             addConsole("出撃を更新しました");
         } catch (Exception e) {
@@ -1340,6 +1348,7 @@ public final class GlobalContext {
             JsonObject obj = data.getJsonObject().getJsonObject("api_data");
 
             mapCellNo = obj.getJsonNumber("api_no").intValue();
+            mapBossCellNo = obj.getJsonNumber("api_bosscell_no").intValue();
 
             addConsole("進撃を更新しました");
         } catch (Exception e) {
