@@ -162,6 +162,8 @@ public final class ApplicationMain {
      */
     public static void main(String[] args) {
         try {
+            // グループ化のためのアプリケーションID (Windows 7以降)
+            Display.setAppName(AppConstants.NAME);
             // 設定読み込み
             AppConfig.load();
             ShipConfig.load();
@@ -207,11 +209,11 @@ public final class ApplicationMain {
     public void createContents() {
         final Display display = Display.getDefault();
         int shellStyle = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.RESIZE;
-        if (AppConfig.get().isOnTop()) {
+        if (AppConfig.get().isOnTop() && !"gtk".equals(SWT.getPlatform())) {
             shellStyle |= SWT.ON_TOP;
         }
         this.shell = new Shell(shellStyle);
-        this.shell.setText("航海日誌  pn " + AppConstants.VERSION);
+        this.shell.setText(AppConstants.NAME + AppConstants.VERSION);
         this.shell.setAlpha(AppConfig.get().getAlpha());
         GridLayout glShell = new GridLayout(1, false);
         glShell.horizontalSpacing = 1;
@@ -346,15 +348,6 @@ public final class ApplicationMain {
         calcexp.setAccelerator(SWT.CTRL + 'C');
         calcexp.addSelectionListener(new CalcExpAdapter(this.shell));
 
-        // その他-グループエディター
-        MenuItem shipgroup = new MenuItem(etcmenu, SWT.NONE);
-        shipgroup.setText("グループエディター(&G)");
-        shipgroup.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                new ShipFilterGroupDialog(ApplicationMain.this.shell).open();
-            }
-        });
         // その他-資材チャート
         MenuItem resourceChart = new MenuItem(etcmenu, SWT.NONE);
         resourceChart.setText("資材チャート(&R)");
@@ -362,6 +355,27 @@ public final class ApplicationMain {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 new ResourceChartDialog(ApplicationMain.this.shell).open();
+            }
+        });
+        // コマンド-出撃統計
+        MenuItem battleCounter = new MenuItem(etcmenu, SWT.NONE);
+        battleCounter.setText("出撃統計(&A)\tCtrl+A");
+        battleCounter.setAccelerator(SWT.CTRL + 'A');
+        battleCounter.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                new BattleAggDialog(ApplicationMain.this.shell).open();
+            }
+        });
+        // セパレータ
+        new MenuItem(etcmenu, SWT.SEPARATOR);
+        // その他-グループエディター
+        MenuItem shipgroup = new MenuItem(etcmenu, SWT.NONE);
+        shipgroup.setText("グループエディター(&G)");
+        shipgroup.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                new ShipFilterGroupDialog(ApplicationMain.this.shell).open();
             }
         });
         // その他-自動プロキシ構成スクリプトファイル生成
@@ -373,15 +387,13 @@ public final class ApplicationMain {
                 new CreatePacFileDialog(ApplicationMain.this.shell).open();
             }
         });
-        // セパレータ
-        new MenuItem(etcmenu, SWT.SEPARATOR);
         // その他-設定
         MenuItem config = new MenuItem(etcmenu, SWT.NONE);
         config.setText("設定(&P)");
         config.addSelectionListener(new ConfigDialogAdapter(this.shell));
         // その他-バージョン情報
         MenuItem version = new MenuItem(etcmenu, SWT.NONE);
-        version.setText("バージョン情報(&A)");
+        version.setText("バージョン情報(&V)");
         version.addSelectionListener(new HelpEventListener(this.shell));
 
         // シェルイベント

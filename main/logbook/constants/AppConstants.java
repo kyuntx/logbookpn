@@ -3,6 +3,7 @@ package logbook.constants;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.TimeZone;
 
 import org.eclipse.swt.graphics.RGB;
 
@@ -12,8 +13,11 @@ import org.eclipse.swt.graphics.RGB;
  */
 public class AppConstants {
 
+    /**　アプリケーション名 */
+    public static final String NAME = "航海日誌 pn";
+
     /** バージョン */
-    public static final String VERSION = "0.7.1";
+    public static final String VERSION = "0.7.3";
 
     /** ホームページ */
     public static final URI HOME_PAGE_URI = URI.create("http://kancolle.clovertown.jp/");
@@ -32,6 +36,9 @@ public class AppConstants {
 
     /** 日付書式(ミリ秒を含む) */
     public static final String DATE_LONG_FORMAT = "yyyy-MM-dd HH-mm-ss.SSS";
+
+    /** タイムゾーン(任務が更新される05:00JSTに0:00になるタイムゾーン) */
+    public static final TimeZone TIME_ZONE_MISSION = TimeZone.getTimeZone("GMT+04:00");
 
     /** 疲労赤色 */
     public static final int COND_RED = 19;
@@ -360,4 +367,34 @@ public class AppConstants {
 
     /** im.kayac.com のアクセス先 URI */
     public static final String PUSH_NOTIFY_IMKAYAC_URI = "http://im.kayac.com/api/post/";
+
+    /** 海戦・ドロップ報告書.csv */
+    public static final String LOG_BATTLE_RESULT = "海戦・ドロップ報告書.csv";
+
+    /** 海戦・ドロップ報告書_alternativefile.csv */
+    public static final String LOG_BATTLE_RESULT_ALT = "海戦・ドロップ報告書_alternativefile.csv";
+
+    /** 建造報告書.csv */
+    public static final String LOG_CREATE_SHIP = "建造報告書.csv";
+
+    /** 建造報告書_alternativefile.csv */
+    public static final String LOG_CREATE_SHIP_ALT = "建造報告書_alternativefile.csv";
+
+    /** 開発報告書.csv */
+    public static final String LOG_CREATE_ITEM = "開発報告書.csv";
+
+    /** 開発報告書_alternativefile.csv */
+    public static final String LOG_CREATE_ITEM_ALT = "開発報告書_alternativefile.csv";
+
+    /** 遠征報告書.csv */
+    public static final String LOG_MISSION = "遠征報告書.csv";
+
+    /** 遠征報告書.csv */
+    public static final String LOG_MISSION_ALT = "遠征報告書_alternativefile.csv";
+
+    /** 資材ログ.csv */
+    public static final String LOG_RESOURCE = "資材ログ.csv";
+
+    /** 資材ログ_alternativefile.csv */
+    public static final String LOG_RESOURCE_ALT = "資材ログ_alternativefile.csv";
 }
