@@ -119,6 +119,8 @@ public final class CreateReportLogic {
                 item.setForeground(SWTResourceManager.getColor(AppConstants.COND_RED_COLOR));
             } else if (cond <= AppConstants.COND_ORANGE) {
                 item.setForeground(SWTResourceManager.getColor(AppConstants.COND_ORANGE_COLOR));
+            } else if ((cond >= AppConstants.COND_DARK_GREEN) && (cond < AppConstants.COND_GREEN)) {
+                item.setForeground(SWTResourceManager.getColor(AppConstants.COND_DARK_GREEN_COLOR));
             } else if (cond >= AppConstants.COND_GREEN) {
                 item.setForeground(SWTResourceManager.getColor(AppConstants.COND_GREEN_COLOR));
             }
@@ -173,7 +175,7 @@ public final class CreateReportLogic {
                     format.format(item.getBattleDate()),
                     item.getQuestName(),
                     item.getMapCellNo(),
-                    item.isBoss() ? "ボス" : "",
+                    item.getBossText(),
                     item.getRank(),
                     battle.getIntercept(),
                     battle.getFriendFormation(),
@@ -266,7 +268,7 @@ public final class CreateReportLogic {
                     format.format(item.getBattleDate()),
                     item.getQuestName(),
                     item.getMapCellNo(),
-                    item.isBoss() ? "ボス" : "",
+                    item.getBossText(),
                     item.getRank(),
                     battle.getIntercept(),
                     battle.getFriendFormation(),
@@ -407,7 +409,8 @@ public final class CreateReportLogic {
      */
     public static String[] getShipListHeader() {
         return new String[] { "", "ID", "艦隊", "名前", "艦種", "疲労", "回復", "Lv", "Next", "経験値", "制空", "装備1", "装備2",
-                "装備3", "装備4", "HP", "火力", "雷装", "対空", "装甲", "回避", "対潜", "索敵", "運" };
+                "装備3", "装備4", "HP", "火力", "雷装", "対空", "装甲", "回避", "対潜", "索敵", "運",
+                "装備命中", "砲撃戦火力", "雷撃戦火力", "対潜火力", "夜戦火力" };
     }
 
     /**
@@ -456,7 +459,12 @@ public final class CreateReportLogic {
                         ship.getKaihi(),
                         ship.getTaisen(),
                         ship.getSakuteki(),
-                        ship.getLucky()
+                        ship.getLucky(),
+                        ship.getAccuracy(),
+                        ship.getHougekiPower(),
+                        ship.getRaigekiPower(),
+                        ship.getTaisenPower(),
+                        ship.getYasenPower()
                 });
             } else {
                 // 成長の余地
@@ -513,7 +521,12 @@ public final class CreateReportLogic {
                         kaihi,
                         taisen,
                         sakuteki,
-                        lucky
+                        lucky,
+                        ship.getAccuracy(),
+                        ship.getHougekiPower(),
+                        ship.getRaigekiPower(),
+                        ship.getTaisenPower(),
+                        ship.getYasenPower()
                 });
             }
         }
@@ -856,6 +869,11 @@ public final class CreateReportLogic {
         }
         if (!filter.submarineTender) {
             if ("潜水母艦".equals(ship.getType())) {
+                return false;
+            }
+        }
+        if (!filter.trainingShip) {
+            if ("練習巡洋艦".equals(ship.getType())) {
                 return false;
             }
         }

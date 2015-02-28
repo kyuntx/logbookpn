@@ -1,6 +1,3 @@
-/**
- * 
- */
 package logbook.gui;
 
 import java.io.File;
@@ -16,13 +13,16 @@ import logbook.config.AppConfig;
 import logbook.constants.AppConstants;
 import logbook.dto.BattleAggDetailsDto;
 import logbook.dto.BattleAggUnitDto;
+import logbook.gui.listener.SaveWindowLocationAdapter;
 import logbook.gui.listener.TreeKeyShortcutAdapter;
 import logbook.gui.listener.TreeToClipboardAdapter;
+import logbook.gui.logic.LayoutLogic;
 import logbook.internal.BattleAggDate;
 import logbook.internal.BattleAggUnit;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -39,7 +39,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 /**
- * @author noname
+ * 出撃統計
  *
  */
 public class BattleAggDialog extends Dialog {
@@ -94,6 +94,11 @@ public class BattleAggDialog extends Dialog {
         // シェルを作成
         this.shell = new Shell(this.getParent(), this.getStyle());
         this.shell.setSize(this.getSize());
+        // ウインドウ位置を復元
+        LayoutLogic.applyWindowLocation(this.getClass(), this.shell);
+        // 閉じた時にウインドウ位置を保存
+        this.shell.addShellListener(new SaveWindowLocationAdapter(this.getClass()));
+
         this.shell.setText(this.getTitle());
         this.shell.setLayout(new FillLayout(SWT.HORIZONTAL));
         // メニューバー
@@ -180,7 +185,7 @@ public class BattleAggDialog extends Dialog {
      * @return String[]
      */
     private String[] getTableHeader() {
-        return new String[] { "集計", "勝利合計", "S勝利", "A勝利", "B勝利", "C敗北", "D敗北" };
+        return new String[] { "集計", "出撃合計", "勝利合計", "S勝利", "A勝利", "B勝利", "C敗北", "D敗北" };
     }
 
     /**
@@ -196,12 +201,12 @@ public class BattleAggDialog extends Dialog {
 
             TreeItem root = new TreeItem(this.tree, SWT.NONE);
             // 合計
-            root.setText(new String[] { entry.getKey().toString(), Integer.toString(total.getWin()),
-                    Integer.toString(total.getS()), Integer.toString(total.getA()), Integer.toString(total.getB()),
-                    Integer.toString(total.getC()), Integer.toString(total.getD()) });
+            root.setText(new String[] { entry.getKey().toString(), Integer.toString(total.getStart()),
+                    Integer.toString(total.getWin()), Integer.toString(total.getS()), Integer.toString(total.getA()),
+                    Integer.toString(total.getB()), Integer.toString(total.getC()), Integer.toString(total.getD()) });
             // ボス
             TreeItem boss = new TreeItem(root, SWT.NONE);
-            boss.setText(new String[] { "ボス", Integer.toString(total.getBossWin()),
+            boss.setText(new String[] { "ボス", "-", Integer.toString(total.getBossWin()),
                     Integer.toString(total.getBossS()), Integer.toString(total.getBossA()),
                     Integer.toString(total.getBossB()), Integer.toString(total.getBossC()),
                     Integer.toString(total.getBossD()) });
@@ -210,15 +215,15 @@ public class BattleAggDialog extends Dialog {
                 BattleAggDetailsDto area = areaEntry.getValue();
 
                 TreeItem sub = new TreeItem(root, SWT.NONE);
-                sub.setText(new String[] { areaEntry.getKey(), Integer.toString(area.getWin()),
-                        Integer.toString(area.getS()), Integer.toString(area.getA()), Integer.toString(area.getB()),
-                        Integer.toString(area.getC()), Integer.toString(area.getD()) });
+                sub.setText(new String[] { areaEntry.getKey(), Integer.toString(area.getStart()),
+                        Integer.toString(area.getWin()), Integer.toString(area.getS()), Integer.toString(area.getA()),
+                        Integer.toString(area.getB()), Integer.toString(area.getC()), Integer.toString(area.getD()) });
                 // ボス
                 TreeItem subBoss = new TreeItem(sub, SWT.NONE);
-                subBoss.setText(new String[] { "ボス", Integer.toString(area.getBossWin()),
-                        Integer.toString(area.getBossS()), Integer.toString(area.getBossA()),
-                        Integer.toString(area.getBossB()), Integer.toString(area.getBossC()),
-                        Integer.toString(area.getBossD()) });
+                subBoss.setText(new String[] { "ボス", "-",
+                        Integer.toString(area.getBossWin()), Integer.toString(area.getBossS()),
+                        Integer.toString(area.getBossA()), Integer.toString(area.getBossB()),
+                        Integer.toString(area.getBossC()), Integer.toString(area.getBossD()) });
             }
             if (first)
                 root.setExpanded(true);
@@ -241,6 +246,8 @@ public class BattleAggDialog extends Dialog {
         Calendar lastWeek = BattleAggDate.LAST_WEEK.get();
         // 先月
         Calendar lastMonth = BattleAggDate.LAST_MONTH.get();
+        // 読み込む最小の日付(>=)
+        Calendar min = lastMonth;
 
         // 海戦・ドロップ報告書読み込み
         File report = new File(FilenameUtils.concat(AppConfig.get().getReportPath(), AppConstants.LOG_BATTLE_RESULT));
@@ -260,25 +267,36 @@ public class BattleAggDialog extends Dialog {
                         Calendar date = DateUtils.toCalendar(format.parse(cols[0]));
                         date.setTimeZone(AppConstants.TIME_ZONE_MISSION);
                         date.setFirstDayOfWeek(Calendar.MONDAY);
+
+                        // 読み込む最小の日付未満の場合は読み飛ばす
+                        if (min.compareTo(date) > 0) {
+                            continue;
+                        }
+
                         // 海域
                         String area = cols[1];
                         // ランク
                         String rank = cols[4];
+                        // 出撃
+                        boolean isStart = StringUtils.indexOf(cols[3], "出撃") > -1;
                         // ボス
-                        boolean isBoss = "ボス".equals(cols[3]);
+                        boolean isBoss = StringUtils.indexOf(cols[3], "ボス") > -1;
 
                         // デイリー集計
-                        this.agg(BattleAggUnit.DAILY, aggMap, today, Calendar.DAY_OF_YEAR, date, area, rank, isBoss);
+                        this.agg(BattleAggUnit.DAILY, aggMap, today, Calendar.DAY_OF_YEAR, date, area, rank, isStart,
+                                isBoss);
                         // ウィークリー集計
-                        this.agg(BattleAggUnit.WEEKLY, aggMap, today, Calendar.WEEK_OF_YEAR, date, area, rank, isBoss);
+                        this.agg(BattleAggUnit.WEEKLY, aggMap, today, Calendar.WEEK_OF_YEAR, date, area, rank, isStart,
+                                isBoss);
                         // マンスリー集計
-                        this.agg(BattleAggUnit.MONTHLY, aggMap, today, Calendar.MONTH, date, area, rank, isBoss);
+                        this.agg(BattleAggUnit.MONTHLY, aggMap, today, Calendar.MONTH, date, area, rank, isStart,
+                                isBoss);
                         // 先週の集計
-                        this.agg(BattleAggUnit.LAST_WEEK, aggMap, lastWeek, Calendar.WEEK_OF_YEAR, date, area,
-                                rank, isBoss);
+                        this.agg(BattleAggUnit.LAST_WEEK, aggMap, lastWeek, Calendar.WEEK_OF_YEAR, date, area, rank,
+                                isStart, isBoss);
                         // 先月の集計
                         this.agg(BattleAggUnit.LAST_MONTH, aggMap, lastMonth, Calendar.MONTH, date, area, rank,
-                                isBoss);
+                                isStart, isBoss);
 
                     } catch (Exception e) {
                         continue;
@@ -303,17 +321,18 @@ public class BattleAggDialog extends Dialog {
      * @param target 集計対象の日付
      * @param area 海域
      * @param rank ランク
+     * @param isStart 出撃
      * @param isBoss ボス
      */
     private void agg(BattleAggUnit unit, Map<BattleAggUnit, BattleAggUnitDto> to, Calendar std, int field,
-            Calendar target, String area, String rank, boolean isBoss) {
+            Calendar target, String area, String rank, boolean isStart, boolean isBoss) {
         if (std.get(field) == target.get(field)) {
             BattleAggUnitDto aggUnit = to.get(unit);
             if (aggUnit == null) {
                 aggUnit = new BattleAggUnitDto();
                 to.put(unit, aggUnit);
             }
-            aggUnit.add(area, rank, isBoss);
+            aggUnit.add(area, rank, isStart, isBoss);
         }
     }
 

@@ -71,6 +71,9 @@ public final class ShipDto extends AbstractDto {
     /** 経験値 */
     private final long exp;
 
+    /** 経験値ゲージの割合 */
+    private final float expraito;
+
     /** HP */
     private final long nowhp;
 
@@ -140,6 +143,9 @@ public final class ShipDto extends AbstractDto {
     /** */
     private final int lockedEquip;
 
+    /** 空母 */
+    private final boolean isCarrier;
+
     /**
      * コンストラクター
      * 
@@ -168,6 +174,7 @@ public final class ShipDto extends AbstractDto {
         this.fuelmax = shipinfo.getMaxFuel();
 
         this.exp = object.getJsonArray("api_exp").getJsonNumber(0).longValue();
+        this.expraito = object.getJsonArray("api_exp").getJsonNumber(2).longValue() / 100f;
         this.nowhp = object.getJsonNumber("api_nowhp").longValue();
         this.maxhp = object.getJsonNumber("api_maxhp").longValue();
         this.slot = new ArrayList<Long>();
@@ -208,6 +215,8 @@ public final class ShipDto extends AbstractDto {
         if (this.cond < 49) {
             this.time.add(Calendar.MINUTE, Math.max(49 - (int) this.cond, 3));
         }
+        this.isCarrier = "水上機母艦".equals(this.type) || "軽空母".equals(this.type) || "正規空母".equals(this.type)
+                || "装甲空母".equals(this.type);
     }
 
     /**
@@ -336,6 +345,13 @@ public final class ShipDto extends AbstractDto {
      */
     public long getExp() {
         return this.exp;
+    }
+
+    /**
+     * @return 経験値ゲージの割合
+     */
+    public float getExpraito() {
+        return this.expraito;
     }
 
     /**
@@ -637,5 +653,91 @@ public final class ShipDto extends AbstractDto {
      */
     public int getLockedEquip() {
         return this.lockedEquip;
+    }
+
+    /**
+     * 装備で加算された命中
+     * 
+     * @return 装備の命中
+     */
+    public long getAccuracy() {
+        long accuracy = 0;
+        for (Long itemid : this.slot) {
+            if (-1 != itemid) {
+                Map<Long, ItemDto> itemMap = GlobalContext.getItemMap();
+                ItemDto item = itemMap.get(itemid);
+                if (item != null) {
+                    accuracy += item.getHoum();
+                }
+            }
+        }
+        return accuracy;
+    }
+
+    /**
+     * 砲撃戦火力
+     * 
+     * @return 砲撃戦火力
+     */
+    public long getHougekiPower() {
+        if (this.isCarrier) {
+            // (火力 + 雷装) × 1.5 + 爆装 × 2 + 55
+            long rai = 0;
+            long baku = 0;
+            Map<Long, ItemDto> itemMap = GlobalContext.getItemMap();
+            for (Long itemid : this.slot) {
+                if (-1 != itemid) {
+                    ItemDto item = itemMap.get(itemid);
+                    if (item != null) {
+                        rai += item.getRaig();
+                        baku += item.getBaku();
+                    }
+                }
+            }
+            return Math.round(((this.getKaryoku() + rai) * 1.5d) + (baku * 2) + 55);
+        } else {
+            return this.getKaryoku() + 5;
+        }
+    }
+
+    /**
+     * 雷撃戦火力
+     * 
+     * @return 雷撃戦火力
+     */
+    public long getRaigekiPower() {
+        return this.getRaisou() + 5;
+    }
+
+    /**
+     * 対潜火力
+     * 
+     * @return 対潜火力
+     */
+    public long getTaisenPower() {
+        // [ 艦船の対潜 ÷ 5 ] + 装備の対潜 × 2 + 25
+        long taisenShip = this.getTaisen();
+        long taisenItem = 0;
+        Map<Long, ItemDto> itemMap = GlobalContext.getItemMap();
+        for (Long itemid : this.slot) {
+            if (-1 != itemid) {
+                ItemDto item = itemMap.get(itemid);
+                if (item != null) {
+                    int taisen = item.getTais();
+                    taisenShip -= taisen;
+                    taisenItem += taisen;
+                }
+            }
+        }
+        return Math.round(Math.floor(taisenShip / 5d) + (taisenItem * 2) + 25);
+    }
+
+    /**
+     * 夜戦火力
+     * 
+     * @return 夜戦火力
+     */
+    public long getYasenPower() {
+        return this.getKaryoku() + this.getRaisou();
     }
 }

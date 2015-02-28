@@ -22,7 +22,9 @@ import logbook.constants.AppConstants;
 import logbook.dto.chart.Resource;
 import logbook.dto.chart.ResourceLog;
 import logbook.dto.chart.ResourceLog.SortableLog;
+import logbook.gui.listener.SaveWindowLocationAdapter;
 import logbook.gui.logic.CreateReportLogic;
+import logbook.gui.logic.LayoutLogic;
 import logbook.gui.logic.ResourceChart;
 import logbook.gui.logic.TableItemCreator;
 
@@ -87,7 +89,7 @@ public final class ResourceChartDialog extends Dialog {
     /** 資材テーブル */
     private Table table;
     /** 資材テーブルのヘッダ */
-    private final String[] header = Arrays.copyOfRange(CreateReportLogic.getMaterialHeader(), 1, 6);
+    private final String[] header = Arrays.copyOfRange(CreateReportLogic.getMaterialHeader(), 1, 9);
     /** 資材テーブルのボディ */
     private final List<String[]> body = new ArrayList<>();
 
@@ -123,6 +125,11 @@ public final class ResourceChartDialog extends Dialog {
         this.shell = new Shell(this.getParent(), this.getStyle());
         this.shell.setMinimumSize(450, 300);
         this.shell.setSize(800, 650);
+        // ウインドウ位置を復元
+        LayoutLogic.applyWindowLocation(this.getClass(), this.shell);
+        // 閉じた時にウインドウ位置を保存
+        this.shell.addShellListener(new SaveWindowLocationAdapter(this.getClass()));
+
         this.shell.setText(this.getText());
         GridLayout glShell = new GridLayout(1, false);
         glShell.verticalSpacing = 2;
@@ -297,11 +304,17 @@ public final class ResourceChartDialog extends Dialog {
             String key = format.format(new Date(log.time[i]));
             Resource[] r = log.resources;
 
-            resourceofday.put(key, new SortableLog(log.time[i],
-                    r[ResourceLog.RESOURCE_FUEL].values[i],
-                    r[ResourceLog.RESOURCE_AMMO].values[i],
-                    r[ResourceLog.RESOURCE_METAL].values[i],
-                    r[ResourceLog.RESOURCE_BAUXITE].values[i]));
+            SortableLog slog = new SortableLog();
+            slog.time = log.time[i];
+            slog.fuel = r[ResourceLog.RESOURCE_FUEL].values[i];
+            slog.ammo = r[ResourceLog.RESOURCE_AMMO].values[i];
+            slog.metal = r[ResourceLog.RESOURCE_METAL].values[i];
+            slog.bauxite = r[ResourceLog.RESOURCE_BAUXITE].values[i];
+            slog.bucket = r[ResourceLog.RESOURCE_BUCKET].values[i];
+            slog.burner = r[ResourceLog.RESOURCE_BURNER].values[i];
+            slog.research = r[ResourceLog.RESOURCE_RESEARCH].values[i];
+
+            resourceofday.put(key, slog);
         }
 
         MessageFormat diffFormat = new MessageFormat(DIFF_FORMAT);
@@ -309,29 +322,23 @@ public final class ResourceChartDialog extends Dialog {
         SortableLog before = null;
         for (Entry<String, SortableLog> entry : resourceofday.entrySet()) {
             SortableLog val = entry.getValue();
-            int fuel = val.fuel;
-            int ammo = val.ammo;
-            int metal = val.metal;
-            int bauxite = val.bauxite;
-            int fuelDiff = fuel;
-            int ammoDiff = ammo;
-            int metalDiff = metal;
-            int bauxiteDiff = bauxite;
+            int[] material = { val.fuel, val.ammo, val.metal, val.bauxite, val.bucket, val.burner, val.research };
+            int[] materialDiff = new int[material.length];
+
             if (before != null) {
-                fuelDiff = fuel - before.fuel;
-                ammoDiff = ammo - before.ammo;
-                metalDiff = metal - before.metal;
-                bauxiteDiff = bauxite - before.bauxite;
+                int[] materialBefore = { before.fuel, before.ammo, before.metal, before.bauxite, before.bucket,
+                        before.burner, before.research };
+                for (int i = 0; i < material.length; i++) {
+                    materialDiff[i] = material[i] - materialBefore[i];
+                }
             }
             before = val;
 
-            String[] line = new String[] {
-                    entry.getKey(),
-                    diffFormat.format(new Object[] { fuel, fuelDiff }),
-                    diffFormat.format(new Object[] { ammo, ammoDiff }),
-                    diffFormat.format(new Object[] { metal, metalDiff }),
-                    diffFormat.format(new Object[] { bauxite, bauxiteDiff })
-            };
+            String[] line = new String[material.length + 1];
+            line[0] = entry.getKey();
+            for (int i = 0; i < material.length; i++) {
+                line[i + 1] = diffFormat.format(new Object[] { material[i], materialDiff[i] });
+            }
             body.add(line);
         }
         Collections.reverse(body);

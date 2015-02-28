@@ -148,6 +148,9 @@ public final class AppConfigBean {
     /** お風呂から上がる時に母港タブを表示 */
     private boolean visibleOnReturnBathwater = true;
 
+    /** モノクロアイコンを使用する */
+    private boolean monoIcon;
+
     /** 回数を表示 */
     private boolean displayCount;
 
@@ -182,7 +185,10 @@ public final class AppConfigBean {
     private String storeJsonPath = FilenameUtils.concat(new File("").getAbsolutePath(), "json");
 
     /** テーブル列を表示する設定(キー:java.lang.Class.getName()) */
-    private Map<String, boolean[]> visibleColumnMap = new HashMap<String, boolean[]>();
+    private Map<String, boolean[]> visibleColumnMap = new HashMap<>();
+
+    /** ウインドウ位置とサイズ(キー:java.lang.Class.getName()) */
+    private Map<String, WindowLocationBean> windowLocationMap = new HashMap<>();
 
     /**
      * ポート番号を取得します。
@@ -897,6 +903,22 @@ public final class AppConfigBean {
     }
 
     /**
+     * モノクロアイコンを使用するを取得します。
+     * @return モノクロアイコンを使用する
+     */
+    public boolean isMonoIcon() {
+        return this.monoIcon;
+    }
+
+    /**
+     * モノクロアイコンを使用するを設定します。
+     * @param monoIcon モノクロアイコンを使用する
+     */
+    public void setMonoIcon(boolean monoIcon) {
+        this.monoIcon = monoIcon;
+    }
+
+    /**
      * 回数を表示を取得します。
      * @return 回数を表示
      */
@@ -1087,4 +1109,21 @@ public final class AppConfigBean {
     public void setVisibleColumnMap(Map<String, boolean[]> visibleColumnMap) {
         this.visibleColumnMap = visibleColumnMap;
     }
+
+    /**
+     * ウインドウ位置とサイズ(キー:java.lang.Class.getName())を取得します。
+     * @return ウインドウ位置とサイズ(キー:java.lang.Class.getName())
+     */
+    public Map<String, WindowLocationBean> getWindowLocationMap() {
+        return this.windowLocationMap;
+    }
+
+    /**
+     * ウインドウ位置とサイズ(キー:java.lang.Class.getName())を設定します。
+     * @param windowLocationMap ウインドウ位置とサイズ(キー:java.lang.Class.getName())
+     */
+    public void setWindowLocationMap(Map<String, WindowLocationBean> windowLocationMap) {
+        this.windowLocationMap = windowLocationMap;
+    }
+
 }
